@@ -1,13 +1,52 @@
 version: "3"
 
 services:
+
+    postgres:
+        image: postgres:17
+        restart: always
+        environment:
+            POSTGRES_USER: ${POSTGRES_USER}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+            POSTGRES_DB: ${POSTGRES_DB}
+        ports:
+            - ${POSTGRES_PORT}:${POSTGRES_PORT}
+        volumes:
+            - db-data:/var/lib/postgresql/data
+        healthcheck:
+            test: [ "CMD-SHELL", "pg_isready --dbname ${POSTGRES_DB} --username ${POSTGRES_USER}" ]
+            interval: 1s
+            timeout: 5s
+
     broker-service:
         build:
             context: ./broker-service
             dockerfile: broker-service.dockerfile
         ports:
-            - "8010:8010"
+            - ${BROKER_SERVICE_PORT}:${BROKER_SERVICE_PORT}
+        environment:
+            PORT: ${BROKER_SERVICE_PORT}
         deploy:
             mode: replicated
             replicas: 1
         restart: always
+
+    auth-service:
+        build:
+            context: ./auth-service
+            dockerfile: auth-service.dockerfile
+        ports:
+            - ${AUTH_SERVICE_PORT}:${AUTH_SERVICE_PORT}
+        environment:
+            PORT: ${AUTH_SERVICE_PORT}
+            POSTGRES_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}
+        deploy:
+            mode: replicated
+            replicas: 1
+        restart: always
+        depends_on:
+            postgres:
+                condition: service_healthy
+
+volumes:
+    db-data:

@@ -7,4 +7,5 @@ import (
 type App struct {
 	DB     *pgxpool.Pool
 	Models Models
+	Cfg    *Config
 }

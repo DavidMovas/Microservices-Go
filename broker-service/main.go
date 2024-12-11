@@ -3,7 +3,6 @@ package main
 import (
 	"broker/internal"
 	"fmt"
-	"github.com/joho/godotenv"
 	"log"
 	"log/slog"
 	"net/http"
@@ -13,17 +12,19 @@ import (
 func main() {
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
 
-	_ = godotenv.Load(".env")
-	port := os.Getenv("BROKER_SERVICE_PORT")
-
-	app := &internal.App{
-		Cfg: &internal.Config{},
+	cfg, err := internal.NewConfig()
+	if err != nil {
+		slog.Error("failed to parse config", "ERROR", err)
+		os.Exit(1)
 	}
 
-	slog.Info("Starting broker service on port: %s\n", port)
+	app := &internal.App{
+		Cfg: cfg,
+	}
 
-	err := http.ListenAndServe(fmt.Sprintf(":%s", port), app.Routes())
-	if err != nil {
+	slog.Info("Starting broker service on port", "PORT", cfg.Port)
+
+	if err = http.ListenAndServe(fmt.Sprintf(":%s", cfg.Port), app.Routes()); err != nil {
 		log.Panic(err)
 	}
 }
