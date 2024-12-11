@@ -1,22 +1,28 @@
 package main
 
 import (
-	"broker/cmd/api"
+	"broker/internal"
 	"fmt"
+	"github.com/joho/godotenv"
 	"log"
+	"log/slog"
 	"net/http"
+	"os"
 )
 
-const webPort = "8010"
-
 func main() {
-	app := &api.App{
-		Cfg: &api.Config{},
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
+
+	_ = godotenv.Load(".env")
+	port := os.Getenv("BROKER_SERVICE_PORT")
+
+	app := &internal.App{
+		Cfg: &internal.Config{},
 	}
 
-	log.Printf("Starting broker service on port: %s\n", webPort)
+	slog.Info("Starting broker service on port: %s\n", port)
 
-	err := http.ListenAndServe(fmt.Sprintf(":%s", webPort), app.Routes())
+	err := http.ListenAndServe(fmt.Sprintf(":%s", port), app.Routes())
 	if err != nil {
 		log.Panic(err)
 	}
