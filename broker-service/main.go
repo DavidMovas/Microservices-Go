@@ -14,14 +14,9 @@ func main() {
 		Cfg: &api.Config{},
 	}
 
-	srv := &http.Server{
-		Addr:    fmt.Sprintf("127.0.0.1:%s", webPort),
-		Handler: app.Routes(),
-	}
-
 	log.Printf("Starting broker service on port: %s\n", webPort)
 
-	err := srv.ListenAndServe()
+	err := http.ListenAndServe(fmt.Sprintf(":%s", webPort), app.Routes())
 	if err != nil {
 		log.Panic(err)
 	}
