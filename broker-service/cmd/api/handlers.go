@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"encoding/json"
@@ -20,5 +20,5 @@ func (a *App) Broker(w http.ResponseWriter, r *http.Request) {
 	out, _ := json.MarshalIndent(payload, "", "\t")
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(out)
+	_, _ = w.Write(out)
 }

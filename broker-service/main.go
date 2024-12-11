@@ -1,6 +1,7 @@
 package main
 
 import (
+	"broker/cmd/api"
 	"fmt"
 	"log"
 	"net/http"
@@ -8,25 +9,20 @@ import (
 
 const webPort = "8010"
 
-type App struct {
-	cfg *Config
-}
-
-type Config struct{}
-
 func main() {
-	app := &App{
-		cfg: &Config{},
+	app := &api.App{
+		Cfg: &api.Config{},
 	}
 
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%s", webPort),
-		Handler: app.routes(),
+		Addr:    fmt.Sprintf("127.0.0.1:%s", webPort),
+		Handler: app.Routes(),
 	}
 
 	log.Printf("Starting broker service on port: %s\n", webPort)
 
-	if err := srv.ListenAndServe(); err != nil {
+	err := srv.ListenAndServe()
+	if err != nil {
 		log.Panic(err)
 	}
 }
