@@ -19,6 +19,18 @@ services:
             interval: 1s
             timeout: 5s
 
+    migrator:
+        build: tern
+        command:
+            - migrate
+            - --conn-string
+            - postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}
+            - --migrations
+            - /migrations
+        depends_on:
+            postgres:
+                condition: service_healthy
+
     broker-service:
         build:
             context: ./broker-service
@@ -40,14 +52,13 @@ services:
             - ${AUTH_SERVICE_PORT}:${AUTH_SERVICE_PORT}
         environment:
             PORT: ${AUTH_SERVICE_PORT}
-            POSTGRES_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable
+            POSTGRES_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}
         deploy:
             mode: replicated
             replicas: 1
         restart: always
         depends_on:
-            postgres:
-                condition: service_healthy
+            - migrator
 
 volumes:
     db-data:

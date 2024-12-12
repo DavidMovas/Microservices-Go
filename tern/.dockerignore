@@ -1,0 +1,12 @@
+.idea
+*.yml
+*.env
+*.md
+.dockerignore
+.gitignore
+.git
+.github
+*.pem
+.pem
+*.terraform
+Makefile
