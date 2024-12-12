@@ -23,5 +23,7 @@ func (a *App) Routes() http.Handler {
 
 	mux.Post("/", a.Broker)
 
+	mux.Post("/auth", a.Authenticate)
+
 	return mux
 }
