@@ -18,7 +18,5 @@ func NewConfig() (*Config, error) {
 		return nil, fmt.Errorf("failed to parse config: %w", err)
 	}
 
-	fmt.Printf("PORT: %s\n", c.Port)
-
 	return &c, nil
 }

@@ -45,7 +45,6 @@ func connectDB(connSting string) (*pgxpool.Pool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	slog.Info("Connecting to database", "CONNECTION_STRING", connSting)
 	db, err := pgxpool.New(ctx, connSting)
 	if err != nil {
 		return nil, err
