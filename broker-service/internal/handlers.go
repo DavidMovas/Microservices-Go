@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"net/http"
 )
 
@@ -46,7 +47,9 @@ func (a *App) Authenticate(w http.ResponseWriter, r *http.Request) {
 func (a *App) Login(w http.ResponseWriter, pl AuthPayload) {
 	jsonData, _ := json.MarshalIndent(pl, "", "\t")
 
-	request, err := http.NewRequest("POST", "http://authentication-service/auth", bytes.NewBuffer(jsonData))
+	slog.Info("Calling auth service")
+
+	request, err := http.NewRequest("POST", "http://auth-service:8020/auth", bytes.NewBuffer(jsonData))
 	if err != nil {
 		_ = a.errorJSON(w, err, http.StatusBadRequest)
 		return

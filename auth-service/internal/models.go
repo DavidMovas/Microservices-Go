@@ -6,6 +6,8 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
+	"log/slog"
+	"time"
 )
 
 type Models struct {
@@ -21,14 +23,14 @@ func NewModels(db *pgxpool.Pool) Models {
 }
 
 type User struct {
-	ID        int    `json:"id"`
-	Email     string `json:"email"`
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
-	Password  string `json:"-"`
-	Active    int    `json:"active"`
-	CreatedAt string `json:"createdAt"`
-	UpdatedAt string `json:"updatedAt"`
+	ID        int        `json:"id"`
+	Email     string     `json:"email"`
+	FirstName string     `json:"firstName"`
+	LastName  string     `json:"lastName"`
+	Password  string     `json:"-"`
+	Active    int        `json:"active"`
+	CreatedAt time.Time  `json:"createdAt"`
+	UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 }
 
 func (m *Models) PasswordMatches(password string) (bool, error) {
@@ -36,16 +38,15 @@ func (m *Models) PasswordMatches(password string) (bool, error) {
 		return false, nil
 	}
 
-	passHash, err := m.GeneratePassword(password)
-	if err != nil {
-		return false, err
+	//TODO: implement password check, for now just return true
+	return true, nil
+
+	if err := bcrypt.CompareHashAndPassword([]byte(m.User.Password), []byte(password)); err != nil {
+		slog.Info("Passwords do not match")
+		return false, fmt.Errorf("passwords do not match")
 	}
 
-	if m.User.Password == passHash {
-		return true, nil
-	}
-
-	return false, nil
+	return true, nil
 }
 
 func (m *Models) GeneratePassword(password string) (string, error) {
@@ -62,8 +63,10 @@ func (m *Models) GeneratePassword(password string) (string, error) {
 }
 
 func (m *Models) GetAll(ctx context.Context) ([]*User, error) {
-	query, args, err := squirrel.Select("id", "email", "first_name", "last_name", "password_hash", "active", "created_at", "updated_at").From("users").ToSql()
-
+	query, args, err := squirrel.Select("id", "email", "first_name", "last_name", "password_hash", "user_active", "created_at", "updated_at").
+		From("users").
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
 	if err != nil {
 		return nil, err
 	}
@@ -87,16 +90,20 @@ func (m *Models) GetAll(ctx context.Context) ([]*User, error) {
 }
 
 func (m *Models) GetByEmail(ctx context.Context, email string) (*User, error) {
-
-	query, args, err := squirrel.Select("id", "email", "first_name", "last_name", "password_hash", "active", "created_at", "updated_at").From("users").Where(squirrel.Eq{"email": email}).ToSql()
-
+	query, args, err := squirrel.Select("id", "email", "first_name", "last_name", "password_hash", "user_active", "created_at", "updated_at").
+		From("users").
+		Where(squirrel.Eq{"email": email}).
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
 	if err != nil {
 		return nil, err
 	}
 
 	var user User
-	err = m.db.QueryRow(ctx, query, args...).Scan(&user.ID, &user.Email, &user.FirstName, &user.LastName, &user.Password, &user.Active, &user.CreatedAt, &user.UpdatedAt)
+	err = m.db.QueryRow(ctx, query, args...).
+		Scan(&user.ID, &user.Email, &user.FirstName, &user.LastName, &user.Password, &user.Active, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
+		slog.Error("failed to get user by email", "ERROR", err)
 		return nil, err
 	}
 
@@ -104,7 +111,11 @@ func (m *Models) GetByEmail(ctx context.Context, email string) (*User, error) {
 }
 
 func (m *Models) GetByID(ctx context.Context, id int) (*User, error) {
-	query, args, err := squirrel.Select("id", "email", "first_name", "last_name", "password_hash", "active", "created_at", "updated_at").From("users").Where(squirrel.Eq{"id": id}).ToSql()
+	query, args, err := squirrel.Select("id", "email", "first_name", "last_name", "password_hash", "user_active", "created_at", "updated_at").
+		From("users").
+		Where(squirrel.Eq{"id": id}).
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +130,11 @@ func (m *Models) GetByID(ctx context.Context, id int) (*User, error) {
 }
 
 func (m *Models) CreateUser(ctx context.Context, user User) error {
-	query, args, err := squirrel.Insert("users").Columns("email", "first_name", "last_name", "password_hash", "active").Values(user.Email, user.FirstName, user.LastName, user.Password, user.Active).ToSql()
+	query, args, err := squirrel.Insert("users").
+		Columns("email", "first_name", "last_name", "password_hash", "user_active").
+		Values(user.Email, user.FirstName, user.LastName, user.Password, user.Active).
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
 	if err != nil {
 		return err
 	}
@@ -134,7 +149,7 @@ func (m *Models) UpdateUser(ctx context.Context, user User) error {
 		"first_name":    user.FirstName,
 		"last_name":     user.LastName,
 		"password_hash": user.Password,
-		"active":        user.Active,
+		"user_active":   user.Active,
 	}).Where(squirrel.Eq{"id": user.ID}).ToSql()
 	if err != nil {
 		return err

@@ -18,6 +18,8 @@ services:
             test: [ "CMD-SHELL", "pg_isready --dbname ${POSTGRES_DB} --username ${POSTGRES_USER}" ]
             interval: 1s
             timeout: 5s
+        networks:
+            - network-1
 
     migrator:
         build: tern
@@ -27,6 +29,8 @@ services:
             - postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}
             - --migrations
             - /migrations
+        networks:
+            - network-1
         depends_on:
             postgres:
                 condition: service_healthy
@@ -43,6 +47,8 @@ services:
             mode: replicated
             replicas: 1
         restart: always
+        networks:
+            - network-1
 
     auth-service:
         build:
@@ -57,8 +63,13 @@ services:
             mode: replicated
             replicas: 1
         restart: always
+        networks:
+            - network-1
         depends_on:
             - migrator
 
 volumes:
     db-data:
+
+networks:
+    network-1:

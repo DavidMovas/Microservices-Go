@@ -30,8 +30,8 @@ func main() {
 	}
 
 	app := &internal.App{
-		DB:  db,
-		Cfg: cfg,
+		Models: internal.NewModels(db),
+		Cfg:    cfg,
 	}
 
 	slog.Info("Starting auth service on port", "PORT", cfg.Port)
