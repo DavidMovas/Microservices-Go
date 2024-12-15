@@ -22,8 +22,19 @@ func main() {
 	}
 
 	app := internal.NewApp(cfg, mdb)
-	_ = app
 
 	slog.Info("Starting logger service on port", "PORT", cfg.Port)
 
+	defer func() {
+		err = app.Shutdown()
+		if err != nil {
+			slog.Error("failed to shutdown", "ERROR", err)
+			os.Exit(1)
+		}
+	}()
+
+	if err = app.Serve(); err != nil {
+		slog.Error("failed to start server", "ERROR", err)
+		os.Exit(1)
+	}
 }
