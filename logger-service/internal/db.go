@@ -22,6 +22,10 @@ func NewMongoClient(config *Config) (*MongoDB, error) {
 		return nil, err
 	}
 
+	if err = client.Ping(context.TODO(), nil); err != nil {
+		return nil, err
+	}
+
 	return &MongoDB{Client: client}, nil
 }
 

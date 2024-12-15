@@ -18,6 +18,11 @@ type AuthPayload struct {
 	Password string `json:"password"`
 }
 
+type LoggerPayload struct {
+	Name string `json:"name"`
+	Data string `json:"data"`
+}
+
 func (a *App) Broker(w http.ResponseWriter, r *http.Request) {
 	payload := jsonResponse{
 		Error:   false,

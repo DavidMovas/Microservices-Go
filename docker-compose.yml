@@ -21,6 +21,23 @@ services:
         networks:
             - network-1
 
+    mongo:
+        image: mongo:6.0.20-rc3-jammy
+        restart: always
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+            MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+        ports:
+            - ${MONGO_PORT}:${MONGO_PORT}
+        volumes:
+            - mongo-data:/data/db
+        healthcheck:
+            test: [ "CMD-SHELL", "mongo --host mongo --eval 'db.adminCommand({ ping: 1 })'" ]
+            interval: 1s
+            timeout: 5s
+        networks:
+            - network-2
+
     migrator:
         build: tern
         command:
@@ -68,8 +85,31 @@ services:
         depends_on:
             - migrator
 
+    logger-service:
+        build:
+            context: ./logger-service
+            dockerfile: logger-service.dockerfile
+        ports:
+            - ${LOGGING_SERVICE_PORT}:${LOGGING_SERVICE_PORT}
+        environment:
+            PORT: ${LOGGING_SERVICE_PORT}
+            RPC_PORT: ${RPC_LOGGING_SERVICE_PORT}
+            GRPC_PORT: ${GRPC_LOGGING_SERVICE_PORT}
+            MONGO_URL: mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongo:${MONGO_PORT}
+            MONGO_USER: ${MONGO_USER}
+            MONGO_PASSWORD: ${MONGO_PASSWORD}
+        deploy:
+            mode: replicated
+            replicas: 1
+        restart: always
+        networks:
+            - network-1
+            - network-2
+
 volumes:
     db-data:
+    mongo-data:
 
 networks:
     network-1:
+    network-2:
