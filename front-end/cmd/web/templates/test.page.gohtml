@@ -67,7 +67,7 @@
 
         authBtn.addEventListener('click', function() {
             const payload = {
-                action: "login",
+                action: "auth",
                 auth: {
                     email: "admin@gmail.com",
                     password: "varysecret"
@@ -82,7 +82,20 @@
                 body: JSON.stringify(payload)
             }
 
-            fetchBroker(body);
+            fetch('http://localhost:8010/action', body)
+                .then(res => res.json())
+                .then(data => {
+                    payload.innerHTML = JSON.stringify(payload, undefined, 4);
+                    received.innerHTML = JSON.stringify(data, null, 2);
+                    if (data.error) {
+                        output.innerHTML += `<br><strong>Error:</strong> ${data.message}`
+                    } else {
+                        output.innerHTML += `<br><strong>Response from broker service:</strong> ${data.message}`;
+                    }
+                })
+                .catch((error) => {
+                    output.innerHTML += `<br><strong>Error:</strong> ${error}`
+                })
         })
 
         logBtn.addEventListener('click', function() {
@@ -102,7 +115,20 @@
                 body: JSON.stringify(payload)
             }
 
-            fetchBroker(body);
+            fetch('http://localhost:8010/action', body)
+                .then(res => res.json())
+                .then(data => {
+                    payload.innerHTML = JSON.stringify(payload, undefined, 4);
+                    received.innerHTML = JSON.stringify(data, null, 2);
+                    if (data.error) {
+                        output.innerHTML += `<br><strong>Error:</strong> ${data.message}`
+                    } else {
+                        output.innerHTML += `<br><strong>Response from broker service:</strong> ${data.message}`;
+                    }
+                })
+                .catch((error) => {
+                    output.innerHTML += `<br><strong>Error:</strong> ${error}`
+                })
         })
 
         mailBtn.addEventListener('click', function() {
@@ -123,10 +149,6 @@
                 body: JSON.stringify(payload)
             }
 
-            fetchBroker(body);
-        })
-
-        const fetchBroker = (body) => {
             fetch('http://localhost:8010/action', body)
                 .then(res => res.json())
                 .then(data => {
@@ -141,6 +163,6 @@
                 .catch((error) => {
                     output.innerHTML += `<br><strong>Error:</strong> ${error}`
                 })
-        }
+        })
     </script>
 {{end}}

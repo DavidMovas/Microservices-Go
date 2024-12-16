@@ -10,5 +10,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o service
 FROM alpine:3.20 AS final
 
 COPY --from=builder /app/service /app/service
+COPY --from=builder /app/templates /app/templates
+
+RUN ls -l /app/templates
 
 ENTRYPOINT [ "/app/service" ]

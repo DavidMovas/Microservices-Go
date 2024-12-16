@@ -14,7 +14,7 @@ const (
 	MailServiceURL         = "http://mail-service:8040/send"
 
 	AuthenticateAction = "auth"
-	LoginAction        = "login"
+	LoggingAction      = "log"
 	MailAction         = "mail"
 )
 
@@ -63,7 +63,7 @@ func (a *App) HandleSubmission(w http.ResponseWriter, r *http.Request) {
 	switch requestPayload.Action {
 	case AuthenticateAction:
 		a.Login(w, requestPayload.Auth)
-	case LoginAction:
+	case LoggingAction:
 		a.Logger(w, requestPayload.Log)
 	case MailAction:
 		a.SendMail(w, requestPayload.Mail)
