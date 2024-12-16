@@ -46,7 +46,7 @@ func (a *App) Insert(log Log) error {
 
 	log.CreatedAt = time.Now()
 
-	_, err := collection.InsertOne(context.TODO(), log)
+	_, err := collection.InsertOne(context.Background(), log)
 	return err
 }
 

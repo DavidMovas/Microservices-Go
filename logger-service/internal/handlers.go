@@ -1,6 +1,9 @@
 package internal
 
-import "net/http"
+import (
+	"log/slog"
+	"net/http"
+)
 
 type payload struct {
 	Name string `json:"name"`
@@ -9,6 +12,8 @@ type payload struct {
 
 func (a *App) Logger(w http.ResponseWriter, r *http.Request) {
 	var response payload
+
+	slog.Info("Calling auth service")
 
 	err := a.readJSON(w, r, &response)
 	if err != nil {

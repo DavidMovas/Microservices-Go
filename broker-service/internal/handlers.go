@@ -24,7 +24,7 @@ type LoggerPayload struct {
 	Data string `json:"data"`
 }
 
-func (a *App) Broker(w http.ResponseWriter, r *http.Request) {
+func (a *App) Broker(w http.ResponseWriter, _ *http.Request) {
 	payload := jsonResponse{
 		Error:   false,
 		Message: "Hit the broker",
