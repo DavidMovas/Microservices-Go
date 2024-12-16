@@ -29,6 +29,19 @@ type Message struct {
 	DataMap     map[string]any
 }
 
+func NewMail(config *Config) *Mail {
+	return &Mail{
+		Domain:      config.Domain,
+		Host:        config.Host,
+		Port:        config.MailPort,
+		Username:    config.Username,
+		Password:    config.Password,
+		Encryption:  config.Encryption,
+		FromAddress: config.FromAddress,
+		FromName:    config.FromName,
+	}
+}
+
 func (m *Mail) SendSMTPMessage(msg Message) error {
 	if msg.From == "" {
 		msg.From = m.FromAddress

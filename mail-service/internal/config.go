@@ -7,7 +7,15 @@ import (
 )
 
 type Config struct {
-	Port string `env:"PORT" envDefault:"8040"`
+	Port        string `env:"PORT" envDefault:"8040"`
+	Domain      string `env:"MAIL_DOMAIN"`
+	Host        string `env:"MAIL_HOST"`
+	MailPort    int    `env:"MAIL_PORT" envDefault:"1025"`
+	Username    string `env:"MAIL_USERNAME"`
+	Password    string `env:"MAIL_PASSWORD"`
+	Encryption  string `env:"MAIL_ENCRYPTION"`
+	FromAddress string `env:"MAIL_FROM_ADDRESS"`
+	FromName    string `env:"MAIL_FROM_NAME"`
 }
 
 func NewConfig() (*Config, error) {

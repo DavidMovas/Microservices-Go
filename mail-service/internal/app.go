@@ -12,11 +12,13 @@ const (
 )
 
 type App struct {
+	mailer *Mail
 	config *Config
 }
 
 func NewApp(config *Config) *App {
 	return &App{
+		mailer: NewMail(config),
 		config: config,
 	}
 }

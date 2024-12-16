@@ -59,7 +59,7 @@ services:
             - ${MAILHOG_PORT}:${MAILHOG_PORT}
             - ${WEB_MAILHOG_PORT}:${WEB_MAILHOG_PORT}
         networks:
-            - network-1
+            - network-3
 
     broker-service:
         build:
@@ -117,6 +117,32 @@ services:
             - network-1
             - network-2
 
+    mail-service:
+        build:
+            context: ./mail-service
+            dockerfile: mail-service.dockerfile
+        ports:
+            - ${MAIL_SERVICE_PORT}:${MAIL_SERVICE_PORT}
+        environment:
+            PORT: ${MAIL_SERVICE_PORT}
+            MAIL_DOMAIN: ${MAIL_DOMAIN}
+            MAIL_HOST: ${MAIL_HOST}
+            MAIL_PORT: ${MAIL_PORT}
+            MAIL_USERNAME: ${MAIL_USERNAME}
+            MAIL_PASSWORD: ${MAIL_PASSWORD}
+            MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS}
+            MAIL_FROM_NAME: ${MAIL_FROM_NAME}
+            MAIL_ENCRYPTION: ${MAIL_ENCRYPTION}
+        deploy:
+            mode: replicated
+            replicas: 1
+        restart: always
+        depends_on:
+            -   mongo
+        networks:
+            - network-1
+            - network-3
+
 volumes:
     db-data:
     mongo-data:
@@ -124,3 +150,4 @@ volumes:
 networks:
     network-1:
     network-2:
+    network-3:

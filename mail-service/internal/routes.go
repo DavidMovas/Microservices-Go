@@ -21,7 +21,7 @@ func (a *App) routes() http.Handler {
 
 	mux.Use(middleware.Heartbeat("/ping"))
 
-	mux.Post("/log", a.Mailer)
+	mux.Post("/send", a.SendMail)
 
 	return mux
 }
