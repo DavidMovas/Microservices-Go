@@ -8,10 +8,21 @@ import (
 	"net/http"
 )
 
+const (
+	AuthenticateServiceURL = "http://auth-service:8020/auth"
+	LoggerServiceURL       = "http://logger-service:8030/log"
+	MailServiceURL         = "http://mail-service:8040/send"
+
+	AuthenticateAction = "auth"
+	LoginAction        = "login"
+	MailAction         = "mail"
+)
+
 type RequestPayload struct {
 	Action string        `json:"action"`
 	Auth   AuthPayload   `json:"auth,omitempty"`
 	Log    LoggerPayload `json:"log,omitempty"`
+	Mail   MailPayload   `json:"mail,omitempty"`
 }
 
 type AuthPayload struct {
@@ -22,6 +33,13 @@ type AuthPayload struct {
 type LoggerPayload struct {
 	Name string `json:"name"`
 	Data string `json:"data"`
+}
+
+type MailPayload struct {
+	From    string `json:"from"`
+	To      string `json:"to"`
+	Subject string `json:"subject"`
+	Message string `json:"message"`
 }
 
 func (a *App) Broker(w http.ResponseWriter, _ *http.Request) {
@@ -43,10 +61,12 @@ func (a *App) HandleSubmission(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch requestPayload.Action {
-	case "login":
+	case AuthenticateAction:
 		a.Login(w, requestPayload.Auth)
-	case "log":
+	case LoginAction:
 		a.Logger(w, requestPayload.Log)
+	case MailAction:
+		a.SendMail(w, requestPayload.Mail)
 	default:
 		_ = a.errorJSON(w, errors.New("unknown action"), http.StatusBadRequest)
 	}
@@ -57,7 +77,7 @@ func (a *App) Login(w http.ResponseWriter, pl AuthPayload) {
 
 	slog.Info("Calling auth service")
 
-	request, err := http.NewRequest("POST", "http://auth-service:8020/auth", bytes.NewBuffer(jsonData))
+	request, err := http.NewRequest(http.MethodPost, AuthenticateServiceURL, bytes.NewBuffer(jsonData))
 	if err != nil {
 		_ = a.errorJSON(w, err, http.StatusBadRequest)
 		return
@@ -107,9 +127,7 @@ func (a *App) Login(w http.ResponseWriter, pl AuthPayload) {
 func (a *App) Logger(w http.ResponseWriter, pl LoggerPayload) {
 	jsonData, _ := json.MarshalIndent(pl, "", "\t")
 
-	loggerServiceURL := "http://logger-service:8030/log"
-
-	request, err := http.NewRequest("POST", loggerServiceURL, bytes.NewBuffer(jsonData))
+	request, err := http.NewRequest(http.MethodPost, LoggerServiceURL, bytes.NewBuffer(jsonData))
 	if err != nil {
 		_ = a.errorJSON(w, err, http.StatusBadRequest)
 		return
@@ -148,6 +166,57 @@ func (a *App) Logger(w http.ResponseWriter, pl LoggerPayload) {
 	var payload jsonResponse
 	payload.Error = false
 	payload.Message = "logged"
+
+	_ = a.writeJSON(w, http.StatusAccepted, payload)
+}
+
+func (a *App) SendMail(w http.ResponseWriter, pl MailPayload) {
+	jsonData, err := json.MarshalIndent(pl, "", "\t")
+	if err != nil {
+		_ = a.errorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	request, err := http.NewRequest(http.MethodPost, MailServiceURL, bytes.NewBuffer(jsonData))
+	if err != nil {
+		_ = a.errorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	request.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	response, err := client.Do(request)
+	if err != nil {
+		_ = a.errorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	defer func() {
+		_ = response.Body.Close()
+	}()
+
+	if response.StatusCode != http.StatusAccepted {
+		slog.Error("Error sending mail", "ERROR", err)
+		_ = a.errorJSON(w, errors.New("error calling mail service"), http.StatusBadRequest)
+		return
+	}
+
+	var jsonResp jsonResponse
+	err = json.NewDecoder(response.Body).Decode(&jsonResp)
+	if err != nil {
+		_ = a.errorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	if jsonResp.Error {
+		_ = a.errorJSON(w, errors.New(jsonResp.Message), http.StatusInternalServerError)
+		return
+	}
+
+	var payload jsonResponse
+	payload.Error = false
+	payload.Message = "Mail sent"
 
 	_ = a.writeJSON(w, http.StatusAccepted, payload)
 }
