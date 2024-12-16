@@ -53,6 +53,14 @@ services:
             postgres:
                 condition: service_healthy
 
+    mailhog:
+        image: mailhog/mailhog
+        ports:
+            - ${MAILHOG_PORT}:${MAILHOG_PORT}
+            - ${WEB_MAILHOG_PORT}:${WEB_MAILHOG_PORT}
+        networks:
+            - network-1
+
     broker-service:
         build:
             context: ./broker-service
