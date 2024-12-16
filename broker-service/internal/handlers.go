@@ -11,7 +11,7 @@ import (
 type RequestPayload struct {
 	Action string        `json:"action"`
 	Auth   AuthPayload   `json:"auth,omitempty"`
-	Logger LoggerPayload `json:"logger,omitempty"`
+	Log    LoggerPayload `json:"log,omitempty"`
 }
 
 type AuthPayload struct {
@@ -46,7 +46,7 @@ func (a *App) HandleSubmission(w http.ResponseWriter, r *http.Request) {
 	case "login":
 		a.Login(w, requestPayload.Auth)
 	case "log":
-		a.Logger(w, requestPayload.Logger)
+		a.Logger(w, requestPayload.Log)
 	default:
 		_ = a.errorJSON(w, errors.New("unknown action"), http.StatusBadRequest)
 	}

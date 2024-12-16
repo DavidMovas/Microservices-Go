@@ -23,7 +23,7 @@ func (a *App) Routes() http.Handler {
 
 	mux.Post("/", a.Broker)
 
-	mux.Post("/login", a.HandleSubmission)
+	mux.Post("/action", a.HandleSubmission)
 
 	return mux
 }
