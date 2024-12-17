@@ -51,10 +51,11 @@ services:
         container_name: elasticsearch
         environment:
             - discovery.type=single-node
-            - xpack.security.enabled=false
+            - xpack.security.enabled=true
+            - xpack.security.enrollment.enabled=true
             - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
         ports:
-            - ${ELASTICSEARCH_PORT}:${ELASTICSEARCH_PORT}
+            - "9200:9200"
         volumes:
             - elastic_data:/usr/share/elasticsearch/data
         networks:
@@ -113,13 +114,13 @@ services:
             PORT: ${LOGGING_SERVICE_PORT}
             RPC_PORT: ${RPC_LOGGING_SERVICE_PORT}
             GRPC_PORT: ${GRPC_LOGGING_SERVICE_PORT}
-            LOKI_HOST: ${LOKI_HOST}
-            LOKI_USERNAME: ${LOKI_USERNAME}
-            LOKI_PASSWORD: ${LOKI_PASSWORD}
+            ELASTICSEARCH_URL: http://elasticsearch:${ELASTICSEARCH_PORT}
         deploy:
             mode: replicated
             replicas: 1
         restart: always
+        depends_on:
+            -   elasticsearch
         networks:
             - network-1
             - net-logging

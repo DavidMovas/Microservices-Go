@@ -3,6 +3,7 @@ package internal
 import (
 	"github.com/sirupsen/logrus"
 	"net/http"
+	"time"
 )
 
 type payload struct {
@@ -13,7 +14,7 @@ type payload struct {
 func (a *App) Logger(w http.ResponseWriter, r *http.Request) {
 	var response payload
 
-	logrus.Info("Calling auth service")
+	logrus.Info("Calling logger service")
 
 	err := a.readJSON(w, r, &response)
 	if err != nil {
@@ -26,7 +27,11 @@ func (a *App) Logger(w http.ResponseWriter, r *http.Request) {
 		Data: response.Data,
 	}
 
-	logrus.Info("Logging", "log", log)
+	logrus.WithFields(logrus.Fields{
+		"name": log.Name,
+		"data": log.Data,
+		"time": time.Now().String(),
+	})
 
 	resp := jsonResponse{
 		Error:   false,
