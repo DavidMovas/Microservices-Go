@@ -6,13 +6,13 @@ import (
 )
 
 type Config struct {
-	Port          string      `env:"PORT" envDefault:"8030"`
-	RPCPort       string      `env:"RPC_PORT" envDefault:"5030"`
-	GRPCPort      string      `env:"GRPC_PORT" envDefault:"5031"`
-	MongoURL      string      `env:"MONGO_URL" envDefault:"mongodb://mongo:27017"`
-	MongoUser     string      `env:"MONGO_USER"`
-	MongoPassword string      `env:"MONGO_PASSWORD"`
-	LokiConfig    *LokiConfig `envPrefix:"LOKI_"`
+	Port          string     `env:"PORT" envDefault:"8030"`
+	RPCPort       string     `env:"RPC_PORT" envDefault:"5030"`
+	GRPCPort      string     `env:"GRPC_PORT" envDefault:"5031"`
+	MongoURL      string     `env:"MONGO_URL" envDefault:"mongodb://mongo:27017"`
+	MongoUser     string     `env:"MONGO_USER"`
+	MongoPassword string     `env:"MONGO_PASSWORD"`
+	LokiConfig    LokiConfig `envPrefix:"LOKI_"`
 }
 
 type LokiConfig struct {
@@ -30,7 +30,8 @@ func NewConfig() (*Config, error) {
 		return nil, err
 	}
 
-	c.LokiConfig.Labels = map[string]string{"service": "logger"}
+	c.LokiConfig.Labels = make(map[string]string)
+	c.LokiConfig.Labels["service"] = "logger-service"
 
 	return &c, nil
 }

@@ -21,24 +21,6 @@ services:
         networks:
             - network-1
 
-    mongo:
-        image: mongo:6.0.19-jammy
-        restart: always
-        environment:
-            MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
-            MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
-            MONGO_INITDB_DATABASE: ${MONGO_DB}
-        ports:
-            - ${MONGO_PORT}:${MONGO_PORT}
-        volumes:
-            - mongo-data:/data/db
-        healthcheck:
-            test: [ "CMD-SHELL", "mongo --host mongo --eval 'db.adminCommand({ ping: 1 })'" ]
-            interval: 1s
-            timeout: 5s
-        networks:
-            - network-2
-
     migrator:
         build: tern
         command:
@@ -62,17 +44,21 @@ services:
             - network-3
 
     loki:
-        image: grafana/loki:3.3.0
+        image: grafana/loki:2.9.10
         ports:
-            - ${LOKI_PORT}:${LOKI_PORT}
-        restart: always
+            -  ${LOKI_PORT}:${LOKI_PORT}
+        restart: unless-stopped
+        volumes:
+            - ./loki-config.yaml:/etc/loki/loki-config.yaml
+        command:
+            - "-config.file=/etc/loki/loki-config.yaml"
         networks:
             - network-2
 
     grafana:
-        image: grafana/grafana:10.3.1
+        image: grafana/grafana:10.3.0
         ports:
-            - ${GRAFANA_PORT}:${GRAFANA_PORT}
+            - ${GRAFANA_PORT}:3000
         volumes:
             - grafana-data:/var/lib/grafana
         environment:
@@ -124,15 +110,13 @@ services:
             PORT: ${LOGGING_SERVICE_PORT}
             RPC_PORT: ${RPC_LOGGING_SERVICE_PORT}
             GRPC_PORT: ${GRPC_LOGGING_SERVICE_PORT}
-            LOKI_HOST: ${LOKI_HOST
+            LOKI_HOST: ${LOKI_HOST}
             LOKI_USERNAME: ${LOKI_USERNAME}
             LOKI_PASSWORD: ${LOKI_PASSWORD}
         deploy:
             mode: replicated
             replicas: 1
         restart: always
-        depends_on:
-            -   mongo
         networks:
             - network-1
             - network-2

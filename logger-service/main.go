@@ -16,7 +16,7 @@ func main() {
 
 	log := logrus.New()
 	log.SetFormatter(&logrus.JSONFormatter{})
-	log.AddHook(internal.NewLokiHook(cfg.LokiConfig))
+	log.AddHook(internal.NewLokiHook(&cfg.LokiConfig))
 
 	app := internal.NewApp(cfg)
 
