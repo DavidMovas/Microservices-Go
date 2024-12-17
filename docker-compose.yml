@@ -4,6 +4,7 @@ services:
 
     postgres:
         image: postgres:17
+        container_name: postgres
         restart: always
         environment:
             POSTGRES_USER: ${POSTGRES_USER}
@@ -22,6 +23,7 @@ services:
             - network-1
 
     migrator:
+        container_name: migrator
         build: tern
         command:
             - migrate
@@ -37,6 +39,7 @@ services:
 
     mailhog:
         image: mailhog/mailhog
+        container_name: mailhog
         ports:
             - ${MAILHOG_PORT}:${MAILHOG_PORT}
             - ${WEB_MAILHOG_PORT}:${WEB_MAILHOG_PORT}
@@ -44,26 +47,42 @@ services:
             - network-3
 
     loki:
-        image: grafana/loki:2.9.10
+        image: grafana/loki:3.3.0
+        container_name: loki
         ports:
             -  ${LOKI_PORT}:${LOKI_PORT}
         restart: unless-stopped
         volumes:
-            - ./loki-config.yaml:/etc/loki/loki-config.yaml
+            - ./config/loki-config.yaml:/etc/loki/loki-config.yaml
         command:
             - "-config.file=/etc/loki/loki-config.yaml"
         networks:
             - network-2
 
+    promtail:
+        image: grafana/promtail:3.3.1
+        container_name: promtail
+        restart: unless-stopped
+        volumes:
+            - /var/log:/var/log
+            - /var/run/docker.sock:/var/run/docker.sock
+            - ./config/promtail.yaml:/etc/promtail/promtail-config.yaml
+        depends_on:
+            -   loki
+
     grafana:
         image: grafana/grafana:10.3.0
+        container_name: grafana
         ports:
             - ${GRAFANA_PORT}:3000
         volumes:
             - grafana-data:/var/lib/grafana
+            - ./config/provisioning:/etc/grafana/provisioning
         environment:
             - GF_SECURITY_ADMIN_USER=${GRAFANA_USERNAME}
             - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+        depends_on:
+            -   loki
         networks:
             - network-2
 

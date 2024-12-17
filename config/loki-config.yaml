@@ -1,7 +1,7 @@
-auth_enabled: false
+auth_enabled: true
 
 server:
-  http_listen_port: 4100
+  http_listen_port: 9100
 
 common:
   ring:
@@ -13,7 +13,7 @@ common:
 
 schema_config:
   configs:
-    - from: 2024-01-01
+    - from: 2020-05-15
       store: tsdb
       object_store: filesystem
       schema: v13
