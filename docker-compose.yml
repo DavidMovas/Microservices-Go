@@ -46,45 +46,29 @@ services:
         networks:
             - network-3
 
-    loki:
-        image: grafana/loki:3.3.0
-        container_name: loki
-        ports:
-            -  ${LOKI_PORT}:${LOKI_PORT}
-        restart: unless-stopped
-        volumes:
-            - ./config/loki-config.yaml:/etc/loki/loki-config.yaml
-        command:
-            - "-config.file=/etc/loki/loki-config.yaml"
-        networks:
-            - network-2
-
-    promtail:
-        image: grafana/promtail:3.3.1
-        container_name: promtail
-        restart: unless-stopped
-        volumes:
-            - /var/log:/var/log
-            - /var/run/docker.sock:/var/run/docker.sock
-            - ./config/promtail.yaml:/etc/promtail/promtail-config.yaml
-        depends_on:
-            -   loki
-
-    grafana:
-        image: grafana/grafana:10.3.0
-        container_name: grafana
-        ports:
-            - ${GRAFANA_PORT}:3000
-        volumes:
-            - grafana-data:/var/lib/grafana
-            - ./config/provisioning:/etc/grafana/provisioning
+    elasticsearch:
+        image: elasticsearch:8.16.1
+        container_name: elasticsearch
         environment:
-            - GF_SECURITY_ADMIN_USER=${GRAFANA_USERNAME}
-            - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
-        depends_on:
-            -   loki
+            - discovery.type=single-node
+            - xpack.security.enabled=false
+            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+        ports:
+            - ${ELASTICSEARCH_PORT}:${ELASTICSEARCH_PORT}
+        volumes:
+            - elastic_data:/usr/share/elasticsearch/data
         networks:
-            - network-2
+            - net-logging
+
+    kibana:
+        image: kibana:8.16.1
+        container_name: kibana
+        environment:
+            - ELASTICSEARCH_HOSTS=http://elasticsearch:${ELASTICSEARCH_PORT}
+        ports:
+            - ${KIBANA_PORT}:${KIBANA_PORT}
+        depends_on:
+            - elasticsearch
 
     broker-service:
         build:
@@ -138,7 +122,7 @@ services:
         restart: always
         networks:
             - network-1
-            - network-2
+            - net-logging
 
     mail-service:
         build:
@@ -168,9 +152,9 @@ services:
 
 volumes:
     db-data:
-    grafana-data:
+    elastic_data:
 
 networks:
     network-1:
-    network-2:
+    net-logging:
     network-3:
