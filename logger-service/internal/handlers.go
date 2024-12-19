@@ -31,7 +31,7 @@ func (a *App) Logger(w http.ResponseWriter, r *http.Request) {
 		"name": log.Name,
 		"data": log.Data,
 		"time": time.Now().String(),
-	})
+	}).Info("logged message")
 
 	resp := jsonResponse{
 		Error:   false,

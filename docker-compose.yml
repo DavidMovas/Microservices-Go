@@ -51,9 +51,8 @@ services:
         container_name: elasticsearch
         environment:
             - discovery.type=single-node
-            - xpack.security.enabled=true
+            - xpack.security.enabled=false
             - xpack.security.enrollment.enabled=true
-            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
         ports:
             - "9200:9200"
         volumes:

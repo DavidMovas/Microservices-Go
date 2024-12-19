@@ -20,14 +20,10 @@ func main() {
 	esClient, err := elastic.NewClient(elastic.SetURL(cfg.EsURL), elastic.SetSniff(false))
 	if err != nil {
 		fmt.Printf("failed to create elastic client %v", err)
+		os.Exit(1)
 	}
 
 	defer esClient.Stop()
-
-	if esClient == nil {
-		fmt.Printf("ES IS NILL")
-		os.Exit(1)
-	}
 
 	hook, err := elogrus.NewAsyncElasticHook(esClient, "localhost", logrus.InfoLevel, "logger")
 	if err != nil {
